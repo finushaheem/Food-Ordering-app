@@ -6,7 +6,7 @@ import { Pressable } from "react-native";
 export default function MenuStack () {
     return < Stack screenOptions={{
         headerRight: () => (
-            <Link href="/" asChild>
+            <Link href="/(admin)/menu/create" asChild>
               <Pressable>
                 {({ pressed }) => (
                   <FontAwesome
