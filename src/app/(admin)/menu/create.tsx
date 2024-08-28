@@ -2,10 +2,11 @@ import Button from '@/components/Button';
 import { defualtPizzaImage } from '@/components/ProductListItem';
 import Colors from '@/constants/Colors';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image, Alert} from 'react-native';
 import { red } from 'react-native-reanimated/lib/typescript/reanimated2/Colors';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import { coolDownAsync } from 'expo-web-browser';
 
 
 const CreateProductScreen = () => {
@@ -14,6 +15,10 @@ const CreateProductScreen = () => {
 
     const [errors, setErrors] = useState('');
     const [image, setImage] = useState<string | null>(null);
+
+    const {id} = useLocalSearchParams();
+    const isUpdating = !!id;
+
 
     const resetFeilds = () => {
         setName('');
@@ -39,11 +44,20 @@ const CreateProductScreen = () => {
 
     }
 
-    const onCreate = () => {
+    const onSubmit = ()=> {
+        if (isUpdating){
+            //update
+            onUpdateCreate();
+        } else {
+            onCreate();
+        }
+    }
+
+    const onUpdateCreate = () => {
         if (!validateInput()){
             return;
         }
-        console.warn('Creating product');
+        console.warn('Updating product: ');
         resetFeilds();
     };
 
@@ -64,6 +78,21 @@ const CreateProductScreen = () => {
           setImage(result.assets[0].uri);
         }
       };
+      const onDelete = () => {
+        console.warn ("Delete!!!!");
+      }
+      const confirmDelete = () => {
+        Alert.alert('Confrim', 'Are you sure want to delete this product', [
+            {
+                text: 'Cancel',
+        },
+        {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: onDelete,
+        },
+    ])
+      };
 
     return(
         <KeyboardAvoidingView 
@@ -72,7 +101,8 @@ const CreateProductScreen = () => {
             keyboardVerticalOffset={100} // Adjust this value according to your UI
         >
             <ScrollView contentContainerStyle={styles.container}>
-            <Stack.Screen options={{title: 'Create Product'}}/>
+            <Stack.Screen
+                options= {{ title: isUpdating ? 'Update Product' : 'Create Product' }}/>
 
                 <Image source={{ uri: image|| defualtPizzaImage}} style={styles.image} />
                 <Text onPress={pickImage} style={styles.textButton}>Select Image </Text>
@@ -92,7 +122,8 @@ const CreateProductScreen = () => {
                 style={styles.input} keyboardType='numeric' />
 
                 <Text style={{ color: 'red'}}>{errors}</Text>
-                <Button onPress={onCreate}text='Create'/>
+                <Button onPress={onSubmit}text= {isUpdating? 'Update' : 'Create'}/>
+                {isUpdating && <Text onPress={confirmDelete} style={styles.textButton}>Delete</Text>}
             </ScrollView>
         </KeyboardAvoidingView>
     )
